@@ -32,7 +32,7 @@ type DriveService struct {
 }
 
 func getCredentials() ([]byte, error) {
-	env := os.Getenv("GOOGLE_CREDENTIALS")
+	env := os.Getenv("GOOGLE_DRIVE_CREDENTIALS")
 
 	if env != "" {
 		return []byte(env), nil

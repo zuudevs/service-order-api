@@ -113,6 +113,7 @@ func main() {
 	routes.RegisterTaskRoutes(router, taskHandler)
 	routes.RegisterTransactionRoutes(router, transactionHandler)
 	routes.RegisterDetailTaskRoutes(router, detailTaskHandler)
+	routes.RegisterHealthRoutes(router)
 
 	port := os.Getenv("PORT")
 

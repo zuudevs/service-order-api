@@ -14,6 +14,8 @@
 package routes
 
 import (
+	"net/http"
+	
 	"github.com/go-chi/chi/v5"
 
 	"github.com/zuudevs/service-order-api/internal/handlers"
@@ -112,5 +114,17 @@ func RegisterDetailTaskRoutes(
 			r.Patch("/", detailTaskHandler.Update)
 			r.Delete("/", detailTaskHandler.Delete)
 		})
+	})
+}
+
+func RegisterHealthRoutes(
+	r chi.Router,
+) {
+	r.Get("/healthz", func(
+		w http.ResponseWriter,
+		r *http.Request,
+	) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("ok"))
 	})
 }
