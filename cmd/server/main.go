@@ -16,6 +16,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -25,7 +26,7 @@ import (
 	"github.com/zuudevs/service-order-api/internal/repositories"
 	"github.com/zuudevs/service-order-api/internal/routes"
 	"github.com/zuudevs/service-order-api/internal/services"
-	gdrive "github.com/zuudevs/service-order-api/internal/services/google"
+	gdrive "github.com/zuudevs/service-order-api/internal/services/gdrive"
 )
 
 func main() {
@@ -40,6 +41,18 @@ func main() {
 		log.Printf("drive init failed: %v", err)
 	} else {
 		go func() {
+			backup := func() {
+				_, err := driveSvc.UploadFile("storage/database.db")
+
+				if err != nil {
+					log.Printf("backup upload failed: %v", err)
+				} else {
+					log.Println("backup uploaded successfully")
+				}
+			}
+
+			backup()
+
 			ticker := time.NewTicker(6 * time.Hour)
 			defer ticker.Stop()
 
@@ -101,9 +114,20 @@ func main() {
 	routes.RegisterTransactionRoutes(router, transactionHandler)
 	routes.RegisterDetailTaskRoutes(router, detailTaskHandler)
 
-	log.Println("server running on :8080")
+	port := os.Getenv("PORT")
 
-	if err := http.ListenAndServe(":8080", router); err != nil {
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Println(
+		"server running on :" + port,
+	)
+
+	if err := http.ListenAndServe(
+		":"+port,
+		router,
+	); err != nil {
 		log.Fatal(err)
 	}
 }

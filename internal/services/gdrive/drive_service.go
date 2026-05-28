@@ -11,7 +11,7 @@
 
 **/
 
-package google
+package gdrive
 
 import (
 	"context"
@@ -31,13 +31,38 @@ type DriveService struct {
 	service *drive.Service
 }
 
+func getCredentials() ([]byte, error) {
+	env := os.Getenv("GOOGLE_CREDENTIALS")
+
+	if env != "" {
+		return []byte(env), nil
+	}
+
+	return os.ReadFile("configs/google/credentials.json")
+}
+
+func getToken() (*oauth2.Token, error) {
+	env := os.Getenv("GOOGLE_TOKEN")
+
+	if env != "" {
+		token := &oauth2.Token{}
+
+		err := json.Unmarshal(
+			[]byte(env),
+			token,
+		)
+
+		return token, err
+	}
+
+	return tokenFromFile("configs/google/token.json")
+}
+
 func NewDriveService() (*DriveService, error) {
 
 	ctx := context.Background()
 
-	credentials, err := os.ReadFile(
-		"configs/google/credentials.json",
-	)
+	credentials, err := getCredentials()
 
 	if err != nil {
 		return nil, err
@@ -76,9 +101,7 @@ func getClient(
 	config *oauth2.Config,
 ) (*http.Client, error) {
 
-	token, err := tokenFromFile(
-		"configs/google/token.json",
-	)
+	token, err := getToken()
 
 	if err != nil {
 
@@ -182,6 +205,9 @@ func (d *DriveService) UploadFile(
 
 	file := &drive.File{
 		Name: filePath,
+		Parents: []string{
+			os.Getenv("GOOGLE_DRIVE_BACKUP_FOLDER_ID"),
+		},
 	}
 
 	response, err := d.service.Files.Create(
