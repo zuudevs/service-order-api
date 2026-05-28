@@ -14,6 +14,7 @@
 package gdrive
 
 import (
+	"io"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -204,11 +205,16 @@ func (d *DriveService) UploadFile(
 
 	defer fileHandle.Close()
 
+	folderId := os.Getenv("GOOGLE_DRIVE_BACKUP_FOLDER_ID")
 	file := &drive.File{
 		Name: filepath.Base(filePath),
-		Parents: []string{
-			os.Getenv("GOOGLE_DRIVE_BACKUP_FOLDER_ID"),
-		},
+	}
+
+	// optional folder
+	if folderId != "" {
+		file.Parents = []string{
+			folderId,
+		}
 	}
 
 	response, err := d.service.Files.Create(
@@ -220,4 +226,71 @@ func (d *DriveService) UploadFile(
 	}
 
 	return response, nil
+}
+
+
+func (d *DriveService) UpdateFile(
+	fileId string,
+	filePath string,
+) (*drive.File, error) {
+
+	fileHandle, err := os.Open(filePath)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer fileHandle.Close()
+
+	file := &drive.File{
+		Name: filepath.Base(filePath),
+	}
+
+	response, err := d.service.Files.Update(
+		fileId,
+		file,
+	).Media(fileHandle).Do()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func (d *DriveService) DownloadFile(
+	fileId string,
+	outputPath string,
+) error {
+	response, err := d.service.Files.Get(fileId).Download()
+
+	if err != nil {
+		return err
+	}
+
+	defer response.Body.Close()
+
+	err = os.MkdirAll(
+		filepath.Dir(outputPath),
+		os.ModePerm,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	file, err := os.Create(outputPath)
+
+	if err != nil {
+		return err
+	}
+
+	defer file.Close()
+
+	_, err = io.Copy(
+		file,
+		response.Body,
+	)
+
+	return err
 }

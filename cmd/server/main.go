@@ -29,40 +29,96 @@ import (
 	gdrive "github.com/zuudevs/service-order-api/internal/services/gdrive"
 )
 
+func backup(
+	driveService *gdrive.DriveService,
+) {
+	filePath := "storage/database.db"
+
+	fileId := os.Getenv(
+		"GOOGLE_DRIVE_DB_FILE_ID",
+	)
+
+	// ================= Upload First Time =================
+
+	if fileId == "" {
+
+		response, err := driveService.UploadFile(
+			filePath,
+		)
+
+		if err != nil {
+			log.Printf(
+				"backup upload failed: %v",
+				err,
+			)
+			return
+		}
+
+		log.Println(
+			"uploaded new backup:",
+			response.Id,
+		)
+
+		log.Println(
+			"save this ID to GOOGLE_DRIVE_DB_FILE_ID",
+		)
+
+		log.Println(
+			"GOOGLE_DRIVE_DB_FILE_ID=" + response.Id,
+		)
+
+		return
+	}
+
+	// ================= Update Existing File =================
+
+	_, err := driveService.UpdateFile(
+		fileId,
+		filePath,
+	)
+
+	if err != nil {
+		log.Printf(
+			"backup update failed: %v",
+			err,
+		)
+		return
+	}
+
+	log.Println(
+		"backup updated successfully",
+	)
+}
+
 func main() {
+	// =============================== SQLite ===============================
+
 	db, err := database.ConnectSQLite()
+
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	defer db.Close()
+
 	// =============================== Google Drive ===============================
+
 	driveSvc, err := gdrive.NewDriveService()
+
 	if err != nil {
-		log.Printf("drive init failed: %v", err)
+		log.Printf(
+			"drive init failed: %v",
+			err,
+		)
+
 	} else {
 		go func() {
-			backup := func() {
-				_, err := driveSvc.UploadFile("storage/database.db")
-
-				if err != nil {
-					log.Printf("backup upload failed: %v", err)
-				} else {
-					log.Println("backup uploaded successfully")
-				}
-			}
-
-			backup()
-
+			backup(driveSvc)
 			ticker := time.NewTicker(6 * time.Hour)
 			defer ticker.Stop()
 
 			for range ticker.C {
-				_, err := driveSvc.UploadFile("storage/database.db")
-				if err != nil {
-					log.Printf("backup upload failed: %v", err)
-				} else {
-					log.Println("backup uploaded successfully")
-				}
+				backup(driveSvc)
 			}
 		}()
 	}
