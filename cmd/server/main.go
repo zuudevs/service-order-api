@@ -32,7 +32,7 @@ import (
 func backup(
 	driveService *gdrive.DriveService,
 ) {
-	filePath := os.Getenv("DATABASE_LOCAL_PATH")+"database.db"
+	filePath := "./storage/database.db"
 
 	fileId := os.Getenv(
 		"GOOGLE_DRIVE_DB_FILE_ID",

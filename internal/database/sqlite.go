@@ -14,10 +14,25 @@
 package database
 
 import (
+	"os"
 	"database/sql"
 
 	_ "modernc.org/sqlite"
 )
+
+func initDatabase(db *sql.DB) (*sql.DB, error) {
+	file, err := os.ReadFile("./internal/database/schema.sql")
+
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := db.Exec(string(file)); err != nil {
+		return nil, err
+	}
+
+	return db, nil
+}
 
 func ConnectSQLite() (*sql.DB, error) {
 	db, err := sql.Open(
@@ -25,7 +40,13 @@ func ConnectSQLite() (*sql.DB, error) {
 		"./storage/database.db",
 	)
 
+	if err := db.Ping(); err != nil {
+		return nil, err
+	}
+
+	db, err = initDatabase(db)
 	if err != nil {
+		_ = db.Close()
 		return nil, err
 	}
 
