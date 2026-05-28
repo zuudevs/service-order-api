@@ -46,6 +46,7 @@ func (r *personRepository) findPersons(
 			person.FirstName,
 			person.MiddleName,
 			person.LastName,
+			person.CreatedAt,
 		)
 
 		if err != nil {
