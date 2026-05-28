@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -204,7 +205,7 @@ func (d *DriveService) UploadFile(
 	defer fileHandle.Close()
 
 	file := &drive.File{
-		Name: filePath,
+		Name: filepath.Base(filePath),
 		Parents: []string{
 			os.Getenv("GOOGLE_DRIVE_BACKUP_FOLDER_ID"),
 		},
