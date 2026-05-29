@@ -43,10 +43,10 @@ func (r *personRepository) findPersons(
 		var person models.Person
 		err := rows.Scan(
 			query,
-			person.FirstName,
-			person.MiddleName,
-			person.LastName,
-			person.CreatedAt,
+			&person.FirstName,
+			&person.MiddleName,
+			&person.LastName,
+			&person.CreatedAt,
 		)
 
 		if err != nil {
@@ -67,9 +67,9 @@ func (r *personRepository) findPerson(
 	var person models.Person
 	err := row.Scan(
 		query,
-		person.FirstName,
-		person.MiddleName,
-		person.LastName,
+		&person.FirstName,
+		&person.MiddleName,
+		&person.LastName,
 	)
 
 	if err != nil {

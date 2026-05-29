@@ -14,6 +14,8 @@
 package gdrive
 
 import (
+	"strings"
+	"bufio"
 	"io"
 	"context"
 	"encoding/json"
@@ -46,7 +48,7 @@ func getCredentials() ([]byte, error) {
 		return nil, err
 	}
 
-	return os.ReadFile(wd + `\configs\google\credentials.json`)
+	return os.ReadFile(filepath.Join(wd, "configs", "google", "credentials.json"))
 }
 
 func getToken() (*oauth2.Token, error) {
@@ -69,7 +71,7 @@ func getToken() (*oauth2.Token, error) {
 		return nil, err
 	}
 
-	return tokenFromFile(wd + `\configs\google\token.json`)
+	return tokenFromFile(filepath.Join(wd, "configs", "google", "token.json"))
 }
 
 func NewDriveService() (*DriveService, error) {
@@ -132,7 +134,7 @@ func getClient(
 		}
 
 		saveToken(
-			wd + `\configs\google\token.json`,
+			filepath.Join(wd, "configs", "google", "token.json"),
 			token,
 		)
 	}
@@ -146,31 +148,36 @@ func getClient(
 func getTokenFromWeb(
 	config *oauth2.Config,
 ) (*oauth2.Token, error) {
-
+ 
 	authURL := config.AuthCodeURL(
 		"state-token",
 		oauth2.AccessTypeOffline,
 	)
-
+ 
 	fmt.Println("Open this URL in your browser:")
-
 	fmt.Println(authURL)
-
+ 
+	// Bug 4 fix: use bufio.Reader so the full redirect URL (which may
+	// contain spaces or special chars) is read correctly, and trim
+	// whitespace so copy-paste with a trailing newline doesn't break
+	// the exchange.
 	fmt.Print("Enter code: ")
-
-	var code string
-
-	fmt.Scan(&code)
-
+	reader := bufio.NewReader(os.Stdin)
+	code, err := reader.ReadString('\n')
+	if err != nil {
+		return nil, fmt.Errorf("reading auth code: %w", err)
+	}
+	code = strings.TrimSpace(code)
+ 
 	token, err := config.Exchange(
 		context.Background(),
 		code,
 	)
-
+ 
 	if err != nil {
 		return nil, err
 	}
-
+ 
 	return token, nil
 }
 

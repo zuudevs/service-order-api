@@ -97,12 +97,13 @@ func (h *TaskHandler) Index(
 	var err error
 
 	if statusStr != "" {
-		status, err := strconv.ParseUint(statusStr, 10, 8)
+		var statusRaw uint64
+		statusRaw, err = strconv.ParseUint(statusStr, 10, 8)
 		if err != nil {
 			http.Error(w, "invalid status", http.StatusBadRequest)
 			return
 		}
-		tasks, err = h.service.GetByStatus(models.TaskStatus(status))
+		tasks, err = h.service.GetByStatus(models.TaskStatus(statusRaw))
 	} else if subject != "" {
 		tasks, err = h.service.GetBySubject(subject)
 	} else {

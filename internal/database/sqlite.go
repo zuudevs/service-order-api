@@ -16,12 +16,19 @@ package database
 import (
 	"os"
 	"database/sql"
+	"path/filepath"
 
 	_ "modernc.org/sqlite"
 )
 
 func initDatabase(db *sql.DB) (*sql.DB, error) {
-	file, err := os.ReadFile("./internal/database/schema.sql")
+	wd, err := os.Getwd()
+
+	if err != nil {
+        return nil, err
+    }
+
+	file, err := os.ReadFile(filepath.Join(wd, "internal", "database", "schema.sql"))
 
 	if err != nil {
 		return nil, err
@@ -35,22 +42,20 @@ func initDatabase(db *sql.DB) (*sql.DB, error) {
 }
 
 func ConnectSQLite() (*sql.DB, error) {
-	db, err := sql.Open(
-		"sqlite",
-		"./storage/database.db",
-	)
-
-	if err := db.Ping(); err != nil {
-		return nil, err
-	}
+	wd, err := os.Getwd()
 
 	if err != nil {
-		db, err = initDatabase(db)
-		if err != nil {
-			_ = db.Close()
-			return nil, err
-		} 
-	}
+        return nil, err
+    }
 
-	return db, nil
+    db, err := sql.Open("sqlite", filepath.Join(wd, "storage", "database.db"))
+    if err != nil {
+        return nil, err
+    }
+
+    if err := db.Ping(); err != nil {
+        return nil, err
+    }
+
+    return initDatabase(db)
 }

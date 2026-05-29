@@ -91,14 +91,16 @@ func (h *OrderHandler) Index(
 	var err error
 
 	if statusStr != "" {
-		status, err := strconv.ParseUint(statusStr, 10, 8)
+		var statusRaw uint64
+		statusRaw, err = strconv.ParseUint(statusStr, 10, 8)
 		if err != nil {
 			http.Error(w, "invalid status", http.StatusBadRequest)
 			return
 		}
-		orders, err = h.service.GetByStatus(models.OrderStatus(status))
+		orders, err = h.service.GetByStatus(models.OrderStatus(statusRaw))
 	} else if personIDStr != "" {
-		personID, err := strconv.ParseUint(personIDStr, 10, 64)
+		var personID uint64
+		personID, err = strconv.ParseUint(personIDStr, 10, 64)
 		if err != nil {
 			http.Error(w, "invalid person_id", http.StatusBadRequest)
 			return

@@ -117,14 +117,16 @@ func (h *ContactHandler) Index(
 	var err error
 
 	if contactTypeStr != "" {
-		contactType, err := strconv.ParseUint(contactTypeStr, 10, 8)
+		var contactTypeRaw uint64
+		contactTypeRaw, err = strconv.ParseUint(contactTypeStr, 10, 8)
 		if err != nil {
 			http.Error(w, "invalid contact_type", http.StatusBadRequest)
 			return
 		}
-		contacts, err = h.service.GetByContactType(models.ContactType(contactType))
+		contacts, err = h.service.GetByContactType(models.ContactType(contactTypeRaw))
 	} else if personIDStr != "" {
-		personID, err := strconv.ParseUint(personIDStr, 10, 64)
+		var personID uint64
+		personID, err = strconv.ParseUint(personIDStr, 10, 64)
 		if err != nil {
 			http.Error(w, "invalid person_id", http.StatusBadRequest)
 			return

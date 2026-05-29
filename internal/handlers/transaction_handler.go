@@ -99,21 +99,24 @@ func (h *TransactionHandler) Index(
 	var err error
 
 	if statusStr != "" {
-		status, err := strconv.ParseUint(statusStr, 10, 8)
+		var statusRaw uint64
+		statusRaw, err = strconv.ParseUint(statusStr, 10, 8)
 		if err != nil {
 			http.Error(w, "invalid status", http.StatusBadRequest)
 			return
 		}
-		transactions, err = h.service.GetByStatus(models.TransactionStatus(status))
+		transactions, err = h.service.GetByStatus(models.TransactionStatus(statusRaw))
 	} else if methodStr != "" {
-		method, err := strconv.ParseUint(methodStr, 10, 8)
+		var methodRaw uint64
+		methodRaw, err = strconv.ParseUint(methodStr, 10, 8)
 		if err != nil {
 			http.Error(w, "invalid method", http.StatusBadRequest)
 			return
 		}
-		transactions, err = h.service.GetByMethod(models.TransactionMethod(method))
+		transactions, err = h.service.GetByMethod(models.TransactionMethod(methodRaw))
 	} else if orderIDStr != "" {
-		orderID, err := strconv.ParseUint(orderIDStr, 10, 64)
+		var orderID uint64
+		orderID, err = strconv.ParseUint(orderIDStr, 10, 64)
 		if err != nil {
 			http.Error(w, "invalid order_id", http.StatusBadRequest)
 			return
