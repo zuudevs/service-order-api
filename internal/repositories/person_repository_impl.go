@@ -42,7 +42,7 @@ func (r *personRepository) findPersons(
 	for rows.Next() {
 		var person models.Person
 		err := rows.Scan(
-			query,
+			&person.ID,
 			&person.FirstName,
 			&person.MiddleName,
 			&person.LastName,
@@ -66,10 +66,11 @@ func (r *personRepository) findPerson(
 	row := r.db.QueryRow(query, args...)
 	var person models.Person
 	err := row.Scan(
-		query,
+		&person.ID,
 		&person.FirstName,
 		&person.MiddleName,
 		&person.LastName,
+		&person.CreatedAt,
 	)
 
 	if err != nil {

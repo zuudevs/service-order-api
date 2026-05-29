@@ -14,15 +14,15 @@
 package gdrive
 
 import (
-	"strings"
 	"bufio"
-	"io"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -120,6 +120,19 @@ func getClient(
 	token, err := getToken()
 
 	if err != nil {
+		// Only attempt the interactive OAuth flow when stdin is a real
+		// terminal. In containers or CI environments there is no TTY, so
+		// stdin.Stat() returns a non-character-device mode — fail fast
+		// instead of blocking forever waiting for input that will never
+		// arrive.
+		stat, statErr := os.Stdin.Stat()
+		if statErr != nil || (stat.Mode()&os.ModeCharDevice) == 0 {
+			return nil, fmt.Errorf(
+				"no saved token and stdin is not a terminal — "+
+					"run the server interactively once to complete OAuth, "+
+					"or set the GOOGLE_TOKEN env var: %w", err,
+			)
+		}
 
 		token, err = getTokenFromWeb(config)
 
@@ -148,19 +161,15 @@ func getClient(
 func getTokenFromWeb(
 	config *oauth2.Config,
 ) (*oauth2.Token, error) {
- 
+
 	authURL := config.AuthCodeURL(
 		"state-token",
 		oauth2.AccessTypeOffline,
 	)
- 
+
 	fmt.Println("Open this URL in your browser:")
 	fmt.Println(authURL)
- 
-	// Bug 4 fix: use bufio.Reader so the full redirect URL (which may
-	// contain spaces or special chars) is read correctly, and trim
-	// whitespace so copy-paste with a trailing newline doesn't break
-	// the exchange.
+
 	fmt.Print("Enter code: ")
 	reader := bufio.NewReader(os.Stdin)
 	code, err := reader.ReadString('\n')
@@ -168,16 +177,16 @@ func getTokenFromWeb(
 		return nil, fmt.Errorf("reading auth code: %w", err)
 	}
 	code = strings.TrimSpace(code)
- 
+
 	token, err := config.Exchange(
 		context.Background(),
 		code,
 	)
- 
+
 	if err != nil {
 		return nil, err
 	}
- 
+
 	return token, nil
 }
 
@@ -233,7 +242,6 @@ func (d *DriveService) UploadFile(
 		Name: filepath.Base(filePath),
 	}
 
-	// optional folder
 	if folderId != "" {
 		file.Parents = []string{
 			folderId,
@@ -250,7 +258,6 @@ func (d *DriveService) UploadFile(
 
 	return response, nil
 }
-
 
 func (d *DriveService) UpdateFile(
 	fileId string,
