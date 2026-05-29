@@ -52,7 +52,7 @@ func getCredentials() ([]byte, error) {
 }
 
 func getToken() (*oauth2.Token, error) {
-	env := os.Getenv("GOOGLE_TOKEN")
+	env := os.Getenv("GOOGLE_DRIVE_TOKEN")
 
 	if env != "" {
 		token := &oauth2.Token{}
@@ -125,7 +125,7 @@ func getClient(
 			return nil, fmt.Errorf(
 				"no saved token and stdin is not a terminal — "+
 					"run the server interactively once to complete OAuth, "+
-					"or set the GOOGLE_TOKEN env var: %w", err,
+					"or set the GOOGLE_DRIVE_TOKEN env var: %w", err,
 			)
 		}
 
