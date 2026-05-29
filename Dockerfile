@@ -31,10 +31,13 @@ WORKDIR /app
 RUN apk add --no-cache ca-certificates tzdata
 
 # Create app directory
-RUN mkdir -p storage
+RUN mkdir -p storage internal/database
 
 # Copy binary from builder
 COPY --from=builder /app/service-order-api .
+
+# Copy database schema
+COPY --from=builder /app/internal/database/schema.sql ./internal/database/
 
 # Expose port
 EXPOSE 8080
