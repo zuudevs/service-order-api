@@ -21,13 +21,10 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-func initDatabase(db *sql.DB) (*sql.DB, error) {
-	wd, err := os.Getwd()
-
-	if err != nil {
-        return nil, err
-    }
-
+func initDatabase(
+	db *sql.DB, 
+	wd string,
+) (*sql.DB, error) {
 	file, err := os.ReadFile(filepath.Join(wd, "internal", "database", "schema.sql"))
 
 	if err != nil {
@@ -48,6 +45,11 @@ func ConnectSQLite() (*sql.DB, error) {
         return nil, err
     }
 
+	storageDir := filepath.Join(wd, "storage")
+	if err := os.MkdirAll(storageDir, 0755); err != nil {
+		return nil, err
+	}
+
     db, err := sql.Open("sqlite", filepath.Join(wd, "storage", "database.db"))
     if err != nil {
         return nil, err
@@ -57,5 +59,5 @@ func ConnectSQLite() (*sql.DB, error) {
         return nil, err
     }
 
-    return initDatabase(db)
+    return initDatabase(db, wd)
 }

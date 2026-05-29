@@ -120,11 +120,6 @@ func getClient(
 	token, err := getToken()
 
 	if err != nil {
-		// Only attempt the interactive OAuth flow when stdin is a real
-		// terminal. In containers or CI environments there is no TTY, so
-		// stdin.Stat() returns a non-character-device mode — fail fast
-		// instead of blocking forever waiting for input that will never
-		// arrive.
 		stat, statErr := os.Stdin.Stat()
 		if statErr != nil || (stat.Mode()&os.ModeCharDevice) == 0 {
 			return nil, fmt.Errorf(

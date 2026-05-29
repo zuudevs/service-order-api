@@ -15,10 +15,11 @@ package routes
 
 import (
 	"net/http"
-	
+
 	"github.com/go-chi/chi/v5"
 
 	"github.com/zuudevs/service-order-api/internal/handlers"
+	"github.com/zuudevs/service-order-api/internal/middlewares"
 )
 
 func RegisterPersonRoutes(
@@ -26,6 +27,7 @@ func RegisterPersonRoutes(
 	personHandler *handlers.PersonHandler,
 ) {
 	r.Route("/persons", func(r chi.Router) {
+		r.Use(middlewares.InternalAuthMiddleware)
 		r.Post("/", personHandler.Create)
 		r.Get("/", personHandler.Index)
 		r.Route("/{id}", func(r chi.Router) {
@@ -42,6 +44,7 @@ func RegisterContactRoutes(
 	contactHandler *handlers.ContactHandler,
 ) {
 	r.Route("/contacts", func(r chi.Router) {
+		r.Use(middlewares.InternalAuthMiddleware)
 		r.Post("/", contactHandler.Create)
 		r.Get("/", contactHandler.Index)
 		r.Route("/{id}", func(r chi.Router) {
@@ -58,6 +61,7 @@ func RegisterOrderRoutes(
 	orderHandler *handlers.OrderHandler,
 ) {
 	r.Route("/orders", func(r chi.Router) {
+		r.Use(middlewares.InternalAuthMiddleware)
 		r.Post("/", orderHandler.Create)
 		r.Get("/", orderHandler.Index)
 		r.Route("/{id}", func(r chi.Router) {
@@ -74,6 +78,7 @@ func RegisterTaskRoutes(
 	taskHandler *handlers.TaskHandler,
 ) {
 	r.Route("/tasks", func(r chi.Router) {
+		r.Use(middlewares.InternalAuthMiddleware)
 		r.Post("/", taskHandler.Create)
 		r.Get("/", taskHandler.Index)
 		r.Route("/{id}", func(r chi.Router) {
@@ -90,6 +95,7 @@ func RegisterTransactionRoutes(
 	transactionHandler *handlers.TransactionHandler,
 ) {
 	r.Route("/transactions", func(r chi.Router) {
+		r.Use(middlewares.InternalAuthMiddleware)
 		r.Post("/", transactionHandler.Create)
 		r.Get("/", transactionHandler.Index)
 		r.Route("/{id}", func(r chi.Router) {
@@ -106,6 +112,7 @@ func RegisterDetailTaskRoutes(
 	detailTaskHandler *handlers.DetailTaskHandler,
 ) {
 	r.Route("/detail-tasks", func(r chi.Router) {
+		r.Use(middlewares.InternalAuthMiddleware)
 		r.Post("/", detailTaskHandler.Create)
 		r.Get("/", detailTaskHandler.Index)
 		r.Route("/{id}", func(r chi.Router) {
@@ -120,7 +127,7 @@ func RegisterDetailTaskRoutes(
 func RegisterHealthRoutes(
 	r chi.Router,
 ) {
-	r.Get("/healthz", func(
+	r.Get("/health", func(
 		w http.ResponseWriter,
 		r *http.Request,
 	) {

@@ -98,6 +98,16 @@ func (s *PersonService) UpdatePerson(
 		return errors.New("person not found")
 	}
 
+	firstname = strings.ToLower(firstname)
+
+	if *middlename != "" && middlename != nil {
+		*middlename = strings.ToLower(*middlename)
+	}
+
+	if *lastname != "" && lastname != nil {
+		*lastname = strings.ToLower(*lastname)
+	}
+
 	person := models.NewPerson(firstname, middlename, lastname)
 	return s.personRepo.Replace(id, person)
 }
@@ -114,6 +124,8 @@ func (s *PersonService) UpdateFirstName(id uint64, firstname string) error {
 		return errors.New("person not found")
 	}
 
+	firstname = strings.ToLower(firstname)
+
 	return s.personRepo.SetFirstName(id, firstname)
 }
 
@@ -123,6 +135,8 @@ func (s *PersonService) UpdateMiddleName(id uint64, middlename string) error {
 		return errors.New("person not found")
 	}
 
+	middlename = strings.ToLower(middlename)
+
 	return s.personRepo.SetMiddleName(id, middlename)
 }
 
@@ -131,6 +145,8 @@ func (s *PersonService) UpdateLastName(id uint64, lastname string) error {
 	if err != nil {
 		return errors.New("person not found")
 	}
+
+	lastname = strings.ToLower(lastname)
 
 	return s.personRepo.SetLastName(id, lastname)
 }
