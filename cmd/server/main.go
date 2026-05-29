@@ -140,17 +140,17 @@ func main() {
 
 	// =============================== Google Drive Backup (Periodic Incremental Upload) ===============================
 
-	intervalChangesBackupStr := os.Getenv("BACKUP_INTERVAL_CHANGES")
-	intervalChangesBackup := uint64(100)
-	val, err := strconv.ParseUint(intervalChangesBackupStr, 10, 64)
+	backupChangeIntervalStr := os.Getenv("BACKUP_CHANGE_INTERVAL")
+	backupChangeInterval := uint64(100)
+	val, err := strconv.ParseUint(backupChangeIntervalStr, 10, 64)
 
-	if intervalChangesBackupStr != "" || err != nil {
-		intervalChangesBackup = 100
+	if backupChangeIntervalStr != "" || err != nil {
+		backupChangeInterval = 100
 	} else {
-		intervalChangesBackup = val
+		backupChangeInterval = val
 	}
 
-	backupSvc := services.NewBackupServiceWithDB(intervalChangesBackup, nil, db)
+	backupSvc := services.NewBackupServiceWithDB(backupChangeInterval, nil, db)
 
 	if driveSvc != nil {
 		backupSvc.SetCallback(func() {
