@@ -23,6 +23,7 @@ import (
 type DetailTaskService struct {
 	detailTaskRepo repositories.DetailTaskRepository
 	taskRepo       repositories.TaskRepository
+	backupSvc      *BackupService
 }
 
 func NewDetailTaskService(
@@ -35,6 +36,18 @@ func NewDetailTaskService(
 	}
 }
 
+func NewDetailTaskServiceWithBackup(
+	detailTaskRepo repositories.DetailTaskRepository,
+	taskRepo repositories.TaskRepository,
+	backupSvc *BackupService,
+) *DetailTaskService {
+	return &DetailTaskService{
+		detailTaskRepo: detailTaskRepo,
+		taskRepo:       taskRepo,
+		backupSvc:      backupSvc,
+	}
+}
+
 func (s *DetailTaskService) CreateDetailTask(taskID uint64) error {
 	_, err := s.taskRepo.GetByID(taskID)
 	if err != nil {
@@ -43,7 +56,11 @@ func (s *DetailTaskService) CreateDetailTask(taskID uint64) error {
 
 	detailTask := models.NewDetailTask(taskID)
 
-	return s.detailTaskRepo.Create(detailTask)
+	err = s.detailTaskRepo.Create(detailTask)
+	if err == nil && s.backupSvc != nil {
+		s.backupSvc.Increment()
+	}
+	return err
 }
 
 func (s *DetailTaskService) Index() ([]models.DetailTask, error) {
@@ -69,7 +86,11 @@ func (s *DetailTaskService) UpdateTaskID(id uint64, taskID uint64) error {
 		return errors.New("task not found")
 	}
 
-	return s.detailTaskRepo.SetTaskID(id, taskID)
+	err = s.detailTaskRepo.SetTaskID(id, taskID)
+	if err == nil && s.backupSvc != nil {
+		s.backupSvc.Increment()
+	}
+	return err
 }
 
 func (s *DetailTaskService) DeleteDetailTask(id uint64) error {
@@ -78,5 +99,9 @@ func (s *DetailTaskService) DeleteDetailTask(id uint64) error {
 		return errors.New("detail task not found")
 	}
 
-	return s.detailTaskRepo.Delete(id)
+	err = s.detailTaskRepo.Delete(id)
+	if err == nil && s.backupSvc != nil {
+		s.backupSvc.Increment()
+	}
+	return err
 }

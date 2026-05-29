@@ -25,6 +25,7 @@ import (
 type ContactService struct {
 	contactRepo repositories.ContactRepository
 	personRepo  repositories.PersonRepository
+	backupSvc   *BackupService
 }
 
 func NewContactService(
@@ -34,6 +35,18 @@ func NewContactService(
 	return &ContactService{
 		contactRepo: contactRepo,
 		personRepo:  personRepo,
+	}
+}
+
+func NewContactServiceWithBackup(
+	contactRepo repositories.ContactRepository,
+	personRepo repositories.PersonRepository,
+	backupSvc *BackupService,
+) *ContactService {
+	return &ContactService{
+		contactRepo: contactRepo,
+		personRepo:  personRepo,
+		backupSvc:   backupSvc,
 	}
 }
 
@@ -83,7 +96,11 @@ func (s *ContactService) CreateContact(
 		personID,
 	)
 
-	return s.contactRepo.Create(contact)
+	err = s.contactRepo.Create(contact)
+	if err == nil && s.backupSvc != nil {
+		s.backupSvc.Increment()
+	}
+	return err
 }
 
 func (s *ContactService) Index() (
@@ -163,7 +180,11 @@ func (s *ContactService) UpdateContact(
 	}
 
 	contact := models.NewContact(value, contactType, isMain, personID)
-	return s.contactRepo.Replace(id, contact)
+	err = s.contactRepo.Replace(id, contact)
+	if err == nil && s.backupSvc != nil {
+		s.backupSvc.Increment()
+	}
+	return err
 }
 
 func (s *ContactService) UpdateValue(id uint64, value string) error {
@@ -178,7 +199,11 @@ func (s *ContactService) UpdateValue(id uint64, value string) error {
 		return errors.New("contact not found")
 	}
 
-	return s.contactRepo.SetValue(id, value)
+	err = s.contactRepo.SetValue(id, value)
+	if err == nil && s.backupSvc != nil {
+		s.backupSvc.Increment()
+	}
+	return err
 }
 
 func (s *ContactService) UpdateContactType(id uint64, contactType models.ContactType) error {
@@ -187,7 +212,11 @@ func (s *ContactService) UpdateContactType(id uint64, contactType models.Contact
 		return errors.New("contact not found")
 	}
 
-	return s.contactRepo.SetContactType(id, contactType)
+	err = s.contactRepo.SetContactType(id, contactType)
+	if err == nil && s.backupSvc != nil {
+		s.backupSvc.Increment()
+	}
+	return err
 }
 
 func (s *ContactService) DeleteContact(id uint64) error {
@@ -196,5 +225,9 @@ func (s *ContactService) DeleteContact(id uint64) error {
 		return errors.New("contact not found")
 	}
 
-	return s.contactRepo.Delete(id)
+	err = s.contactRepo.Delete(id)
+	if err == nil && s.backupSvc != nil {
+		s.backupSvc.Increment()
+	}
+	return err
 }

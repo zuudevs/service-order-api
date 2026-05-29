@@ -319,3 +319,86 @@ func (d *DriveService) DownloadFile(
 
 	return err
 }
+
+// UploadIncrementalBackup uploads an incremental backup file
+func (d *DriveService) UploadIncrementalBackup(
+	filePath string,
+	parentFolderId string,
+) (*drive.File, error) {
+
+	fileHandle, err := os.Open(filePath)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer fileHandle.Close()
+
+	fileName := filepath.Base(filePath)
+	file := &drive.File{
+		Name: fileName,
+	}
+
+	if parentFolderId != "" {
+		file.Parents = []string{
+			parentFolderId,
+		}
+	}
+
+	response, err := d.service.Files.Create(
+		file,
+	).Media(fileHandle).Do()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+// ListIncrementalBackups lists all incremental backups in a folder
+func (d *DriveService) ListIncrementalBackups(
+	parentFolderId string,
+) ([]*drive.File, error) {
+
+	query := fmt.Sprintf(
+		"'%s' in parents and name contains 'backup_' and trashed=false",
+		parentFolderId,
+	)
+
+	fileList, err := d.service.Files.List().
+		Q(query).
+		OrderBy("createdTime desc").
+		Do()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return fileList.Files, nil
+}
+
+// DeleteOldBackups keeps only N most recent backups
+func (d *DriveService) DeleteOldBackups(
+	parentFolderId string,
+	keepCount int,
+) error {
+
+	files, err := d.ListIncrementalBackups(parentFolderId)
+	if err != nil {
+		return err
+	}
+
+	if len(files) <= keepCount {
+		return nil
+	}
+
+	// Delete older backups (keep most recent N)
+	for i := keepCount; i < len(files); i++ {
+		if err := d.service.Files.Delete(files[i].Id).Do(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

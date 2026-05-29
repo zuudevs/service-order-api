@@ -22,7 +22,8 @@ import (
 )
 
 type PersonService struct {
-	personRepo repositories.PersonRepository
+	personRepo   repositories.PersonRepository
+	backupSvc    *BackupService
 }
 
 func NewPersonService(
@@ -30,6 +31,16 @@ func NewPersonService(
 ) *PersonService {
 	return &PersonService{
 		personRepo: personRepo,
+	}
+}
+
+func NewPersonServiceWithBackup(
+	personRepo repositories.PersonRepository,
+	backupSvc *BackupService,
+) *PersonService {
+	return &PersonService{
+		personRepo: personRepo,
+		backupSvc:  backupSvc,
 	}
 }
 
@@ -60,7 +71,11 @@ func (s *PersonService) Create(
 		lastname,
 	)
 
-	return s.personRepo.Create(person)
+	err := s.personRepo.Create(person)
+	if err == nil && s.backupSvc != nil {
+		s.backupSvc.Increment()
+	}
+	return err
 }
 
 func (s *PersonService) Index() (
@@ -119,7 +134,11 @@ func (s *PersonService) UpdatePerson(
 	}
 
 	person := models.NewPerson(firstname, middlename, lastname)
-	return s.personRepo.Replace(id, person)
+	err = s.personRepo.Replace(id, person)
+	if err == nil && s.backupSvc != nil {
+		s.backupSvc.Increment()
+	}
+	return err
 }
 
 func (s *PersonService) UpdateFirstName(id uint64, firstname string) error {
@@ -136,7 +155,11 @@ func (s *PersonService) UpdateFirstName(id uint64, firstname string) error {
 
 	firstname = strings.ToLower(firstname)
 
-	return s.personRepo.SetFirstName(id, firstname)
+	err = s.personRepo.SetFirstName(id, firstname)
+	if err == nil && s.backupSvc != nil {
+		s.backupSvc.Increment()
+	}
+	return err
 }
 
 func (s *PersonService) UpdateMiddleName(id uint64, middlename string) error {
@@ -147,7 +170,11 @@ func (s *PersonService) UpdateMiddleName(id uint64, middlename string) error {
 
 	middlename = strings.ToLower(middlename)
 
-	return s.personRepo.SetMiddleName(id, middlename)
+	err = s.personRepo.SetMiddleName(id, middlename)
+	if err == nil && s.backupSvc != nil {
+		s.backupSvc.Increment()
+	}
+	return err
 }
 
 func (s *PersonService) UpdateLastName(id uint64, lastname string) error {
@@ -158,7 +185,11 @@ func (s *PersonService) UpdateLastName(id uint64, lastname string) error {
 
 	lastname = strings.ToLower(lastname)
 
-	return s.personRepo.SetLastName(id, lastname)
+	err = s.personRepo.SetLastName(id, lastname)
+	if err == nil && s.backupSvc != nil {
+		s.backupSvc.Increment()
+	}
+	return err
 }
 
 func (s *PersonService) DeletePerson(id uint64) error {
@@ -167,5 +198,9 @@ func (s *PersonService) DeletePerson(id uint64) error {
 		return errors.New("person not found")
 	}
 
-	return s.personRepo.Delete(id)
+	err = s.personRepo.Delete(id)
+	if err == nil && s.backupSvc != nil {
+		s.backupSvc.Increment()
+	}
+	return err
 }

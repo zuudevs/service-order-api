@@ -24,6 +24,7 @@ import (
 type OrderService struct {
 	orderRepo  repositories.OrderRepository
 	personRepo repositories.PersonRepository
+	backupSvc  *BackupService
 }
 
 func NewOrderService(
@@ -33,6 +34,18 @@ func NewOrderService(
 	return &OrderService{
 		orderRepo:  orderRepo,
 		personRepo: personRepo,
+	}
+}
+
+func NewOrderServiceWithBackup(
+	orderRepo repositories.OrderRepository,
+	personRepo repositories.PersonRepository,
+	backupSvc *BackupService,
+) *OrderService {
+	return &OrderService{
+		orderRepo:  orderRepo,
+		personRepo: personRepo,
+		backupSvc:  backupSvc,
 	}
 }
 
@@ -50,7 +63,11 @@ func (s *OrderService) CreateOrder(
 	order := models.NewOrder(status, time.Now().UTC())
 	order.PersonID = personID
 
-	return s.orderRepo.Create(order)
+	err := s.orderRepo.Create(order)
+	if err == nil && s.backupSvc != nil {
+		s.backupSvc.Increment()
+	}
+	return err
 }
 
 func (s *OrderService) Index() ([]models.Order, error) {
@@ -75,7 +92,11 @@ func (s *OrderService) UpdateStatus(id uint64, status models.OrderStatus) error 
 		return errors.New("order not found")
 	}
 
-	return s.orderRepo.SetStatus(id, status)
+	err = s.orderRepo.SetStatus(id, status)
+	if err == nil && s.backupSvc != nil {
+		s.backupSvc.Increment()
+	}
+	return err
 }
 
 func (s *OrderService) UpdateTotalPrice(id uint64, price uint64) error {
@@ -84,7 +105,11 @@ func (s *OrderService) UpdateTotalPrice(id uint64, price uint64) error {
 		return errors.New("order not found")
 	}
 
-	return s.orderRepo.SetTotalPrice(id, price)
+	err = s.orderRepo.SetTotalPrice(id, price)
+	if err == nil && s.backupSvc != nil {
+		s.backupSvc.Increment()
+	}
+	return err
 }
 
 func (s *OrderService) DeleteOrder(id uint64) error {
@@ -93,5 +118,9 @@ func (s *OrderService) DeleteOrder(id uint64) error {
 		return errors.New("order not found")
 	}
 
-	return s.orderRepo.Delete(id)
+	err = s.orderRepo.Delete(id)
+	if err == nil && s.backupSvc != nil {
+		s.backupSvc.Increment()
+	}
+	return err
 }

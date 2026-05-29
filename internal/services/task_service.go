@@ -23,7 +23,8 @@ import (
 )
 
 type TaskService struct {
-	taskRepo repositories.TaskRepository
+	taskRepo  repositories.TaskRepository
+	backupSvc *BackupService
 }
 
 func NewTaskService(
@@ -31,6 +32,16 @@ func NewTaskService(
 ) *TaskService {
 	return &TaskService{
 		taskRepo: taskRepo,
+	}
+}
+
+func NewTaskServiceWithBackup(
+	taskRepo repositories.TaskRepository,
+	backupSvc *BackupService,
+) *TaskService {
+	return &TaskService{
+		taskRepo:  taskRepo,
+		backupSvc: backupSvc,
 	}
 }
 
@@ -52,7 +63,11 @@ func (s *TaskService) CreateTask(
 
 	task := models.NewTask(subject, description, price, due)
 
-	return s.taskRepo.Create(task)
+	err := s.taskRepo.Create(task)
+	if err == nil && s.backupSvc != nil {
+		s.backupSvc.Increment()
+	}
+	return err
 }
 
 func (s *TaskService) Index() ([]models.Task, error) {
@@ -77,7 +92,11 @@ func (s *TaskService) UpdateStatus(id uint64, status models.TaskStatus) error {
 		return errors.New("task not found")
 	}
 
-	return s.taskRepo.SetStatus(id, status)
+	err = s.taskRepo.SetStatus(id, status)
+	if err == nil && s.backupSvc != nil {
+		s.backupSvc.Increment()
+	}
+	return err
 }
 
 func (s *TaskService) UpdatePrice(id uint64, price uint64) error {
@@ -86,7 +105,11 @@ func (s *TaskService) UpdatePrice(id uint64, price uint64) error {
 		return errors.New("task not found")
 	}
 
-	return s.taskRepo.SetPrice(id, price)
+	err = s.taskRepo.SetPrice(id, price)
+	if err == nil && s.backupSvc != nil {
+		s.backupSvc.Increment()
+	}
+	return err
 }
 
 func (s *TaskService) UpdateSubject(id uint64, subject string) error {
@@ -101,7 +124,11 @@ func (s *TaskService) UpdateSubject(id uint64, subject string) error {
 		return errors.New("task not found")
 	}
 
-	return s.taskRepo.SetSubject(id, subject)
+	err = s.taskRepo.SetSubject(id, subject)
+	if err == nil && s.backupSvc != nil {
+		s.backupSvc.Increment()
+	}
+	return err
 }
 
 func (s *TaskService) DeleteTask(id uint64) error {
@@ -110,5 +137,9 @@ func (s *TaskService) DeleteTask(id uint64) error {
 		return errors.New("task not found")
 	}
 
-	return s.taskRepo.Delete(id)
+	err = s.taskRepo.Delete(id)
+	if err == nil && s.backupSvc != nil {
+		s.backupSvc.Increment()
+	}
+	return err
 }

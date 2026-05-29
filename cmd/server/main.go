@@ -34,12 +34,10 @@ func syncDatabase(
 ) {
 	filePath := "./storage/database.db"
 	fileId := os.Getenv("GOOGLE_DRIVE_DB_FILE_ID")
-
-	// Check if file exists locally
+	
 	_, err := os.Stat(filePath)
 	fileExists := err == nil
 
-	// If file ID is set, try to download from GDrive
 	if fileId != "" {
 		log.Println("Downloading database from Google Drive...")
 		err := driveService.DownloadFile(fileId, filePath)
@@ -51,73 +49,67 @@ func syncDatabase(
 		}
 	}
 
-	// If no file exists locally and no file ID, create new and upload
 	if !fileExists && fileId == "" {
 		log.Println("No database file found. Creating new database...")
-		// Database will be created by ConnectSQLite
 		return
 	}
-
-	// If local file exists but no file ID in env, we'll upload on backup
 }
 
-func backup(
+func backupIncremental(
 	driveService *gdrive.DriveService,
+	backupService *services.BackupService,
 ) {
-	filePath := "./storage/database.db"
-
+	dbFilePath := "./storage/database.db"
 	fileId := os.Getenv("GOOGLE_DRIVE_DB_FILE_ID")
 
-	// ================= Upload First Time =================
-
+	// ================= Upload/Update Main Database File =================
+	
 	if fileId == "" {
-
-		response, err := driveService.UploadFile(
-			filePath,
-		)
-
+		// First time: upload raw database file
+		response, err := driveService.UploadFile(dbFilePath)
 		if err != nil {
-			log.Printf(
-				"backup upload failed: %v",
-				err,
-			)
+			log.Printf("failed to upload main database: %v", err)
 			return
 		}
 
-		log.Println(
-			"uploaded new backup:",
-			response.Id,
-		)
-
-		log.Println(
-			"save this ID to GOOGLE_DRIVE_DB_FILE_ID",
-		)
-
-		log.Println(
-			"GOOGLE_DRIVE_DB_FILE_ID=" + response.Id,
-		)
-
+		log.Printf("main database uploaded successfully: %s", response.Id)
+		log.Printf("save this ID to GOOGLE_DRIVE_DB_FILE_ID: %s", response.Id)
 		return
 	}
 
-	// ================= Update Existing File =================
-
-	_, err := driveService.UpdateFile(
-		fileId,
-		filePath,
-	)
-
+	// Update existing main database file (raw, not compressed)
+	_, err := driveService.UpdateFile(fileId, dbFilePath)
 	if err != nil {
-		log.Printf(
-			"backup update failed: %v",
-			err,
-		)
+		log.Printf("failed to update main database: %v", err)
 		return
 	}
 
-	log.Println(
-		"backup updated successfully",
-	)
+	log.Println("main database updated successfully")
+
+	// ================= Create Incremental Backup Archive =================
+
+	backupPath, err := backupService.CreateIncrementalBackup()
+	if err != nil {
+		log.Printf("failed to create incremental backup: %v", err)
+		return
+	}
+
+	backupFolderId := os.Getenv("GOOGLE_DRIVE_BACKUP_FOLDER_ID")
+
+	response, err := driveService.UploadIncrementalBackup(backupPath, backupFolderId)
+	if err != nil {
+		log.Printf("failed to upload incremental backup: %v", err)
+		return
+	}
+
+	log.Printf("incremental backup archived: %s", response.Id)
+
+	// Keep only last 7 backups to save storage
+	if backupFolderId != "" {
+		if err := driveService.DeleteOldBackups(backupFolderId, 7); err != nil {
+			log.Printf("warning: failed to clean old backups: %v", err)
+		}
+	}
 }
 
 func main() {
@@ -145,16 +137,26 @@ func main() {
 
 	defer db.Close()
 
-	// =============================== Google Drive Backup (Periodic Upload) ===============================
+	// =============================== Google Drive Backup (Periodic Incremental Upload) ===============================
+
+	backupSvc := services.NewBackupServiceWithDB(100, nil, db)
 
 	if driveSvc != nil {
+		backupSvc.SetCallback(func() {
+			backupIncremental(driveSvc, backupSvc)
+		})
+
 		go func() {
-			backup(driveSvc)
+			// Initial backup after 1 minute
+			time.Sleep(1 * time.Minute)
+			backupIncremental(driveSvc, backupSvc)
+
+			// Then backup every 6 hours
 			ticker := time.NewTicker(6 * time.Hour)
 			defer ticker.Stop()
 
 			for range ticker.C {
-				backup(driveSvc)
+				backupIncremental(driveSvc, backupSvc)
 			}
 		}()
 	}
@@ -162,37 +164,37 @@ func main() {
 	// ================================= Person =================================
 
 	personRepo := repositories.NewPersonRepository(db)
-	personService := services.NewPersonService(personRepo)
+	personService := services.NewPersonServiceWithBackup(personRepo, backupSvc)
 	personHandler := handlers.NewPersonHandler(personService)
 
 	// ================================= Contact =================================
 
 	contactRepo := repositories.NewContactRepository(db)
-	contactService := services.NewContactService(contactRepo, personRepo)
+	contactService := services.NewContactServiceWithBackup(contactRepo, personRepo, backupSvc)
 	contactHandler := handlers.NewContactHandler(contactService)
 
 	// ================================= Order =================================
 
 	orderRepo := repositories.NewOrderRepository(db)
-	orderService := services.NewOrderService(orderRepo, personRepo)
+	orderService := services.NewOrderServiceWithBackup(orderRepo, personRepo, backupSvc)
 	orderHandler := handlers.NewOrderHandler(orderService)
 
 	// ================================= Task =================================
 
 	taskRepo := repositories.NewTaskRepository(db)
-	taskService := services.NewTaskService(taskRepo)
+	taskService := services.NewTaskServiceWithBackup(taskRepo, backupSvc)
 	taskHandler := handlers.NewTaskHandler(taskService)
 
 	// ================================= Transaction =================================
 
 	transactionRepo := repositories.NewTransactionRepository(db)
-	transactionService := services.NewTransactionService(transactionRepo, orderRepo)
+	transactionService := services.NewTransactionServiceWithBackup(transactionRepo, orderRepo, backupSvc)
 	transactionHandler := handlers.NewTransactionHandler(transactionService)
 
 	// ================================= DetailTask =================================
 
 	detailTaskRepo := repositories.NewDetailTaskRepository(db)
-	detailTaskService := services.NewDetailTaskService(detailTaskRepo, taskRepo)
+	detailTaskService := services.NewDetailTaskServiceWithBackup(detailTaskRepo, taskRepo, backupSvc)
 	detailTaskHandler := handlers.NewDetailTaskHandler(detailTaskService)
 
 	// ================================= Router Setup =================================

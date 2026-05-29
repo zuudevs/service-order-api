@@ -24,6 +24,7 @@ import (
 type TransactionService struct {
 	transactionRepo repositories.TransactionRepository
 	orderRepo       repositories.OrderRepository
+	backupSvc       *BackupService
 }
 
 func NewTransactionService(
@@ -33,6 +34,18 @@ func NewTransactionService(
 	return &TransactionService{
 		transactionRepo: transactionRepo,
 		orderRepo:       orderRepo,
+	}
+}
+
+func NewTransactionServiceWithBackup(
+	transactionRepo repositories.TransactionRepository,
+	orderRepo repositories.OrderRepository,
+	backupSvc *BackupService,
+) *TransactionService {
+	return &TransactionService{
+		transactionRepo: transactionRepo,
+		orderRepo:       orderRepo,
+		backupSvc:       backupSvc,
 	}
 }
 
@@ -59,7 +72,11 @@ func (s *TransactionService) CreateTransaction(
 	transaction := models.NewTransaction(status, method, amount, evidencePath)
 	transaction.OrderID = orderID
 
-	return s.transactionRepo.Create(transaction)
+	err := s.transactionRepo.Create(transaction)
+	if err == nil && s.backupSvc != nil {
+		s.backupSvc.Increment()
+	}
+	return err
 }
 
 func (s *TransactionService) Index() ([]models.Transaction, error) {
@@ -88,7 +105,11 @@ func (s *TransactionService) UpdateStatus(id uint64, status models.TransactionSt
 		return errors.New("transaction not found")
 	}
 
-	return s.transactionRepo.SetStatus(id, status)
+	err = s.transactionRepo.SetStatus(id, status)
+	if err == nil && s.backupSvc != nil {
+		s.backupSvc.Increment()
+	}
+	return err
 }
 
 func (s *TransactionService) UpdateAmount(id uint64, amount uint64) error {
@@ -101,7 +122,11 @@ func (s *TransactionService) UpdateAmount(id uint64, amount uint64) error {
 		return errors.New("transaction not found")
 	}
 
-	return s.transactionRepo.SetAmount(id, amount)
+	err = s.transactionRepo.SetAmount(id, amount)
+	if err == nil && s.backupSvc != nil {
+		s.backupSvc.Increment()
+	}
+	return err
 }
 
 func (s *TransactionService) DeleteTransaction(id uint64) error {
@@ -110,5 +135,9 @@ func (s *TransactionService) DeleteTransaction(id uint64) error {
 		return errors.New("transaction not found")
 	}
 
-	return s.transactionRepo.Delete(id)
+	err = s.transactionRepo.Delete(id)
+	if err == nil && s.backupSvc != nil {
+		s.backupSvc.Increment()
+	}
+	return err
 }

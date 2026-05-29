@@ -4,6 +4,7 @@ go 1.25.8
 
 require (
 	github.com/go-chi/chi/v5 v5.3.0
+	golang.org/x/oauth2 v0.36.0
 	google.golang.org/api v0.281.0
 	modernc.org/sqlite v1.39.1
 )
@@ -32,7 +33,6 @@ require (
 	golang.org/x/crypto v0.51.0 // indirect
 	golang.org/x/exp v0.0.0-20250620022241-b7579e27df2b // indirect
 	golang.org/x/net v0.55.0 // indirect
-	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/sys v0.45.0 // indirect
 	golang.org/x/text v0.37.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260523011958-0a33c5d7ca68 // indirect
