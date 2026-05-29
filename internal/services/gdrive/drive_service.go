@@ -40,7 +40,13 @@ func getCredentials() ([]byte, error) {
 		return []byte(env), nil
 	}
 
-	return os.ReadFile("configs/google/credentials.json")
+	wd, err := os.Getwd()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return os.ReadFile(wd + `\configs\google\credentials.json`)
 }
 
 func getToken() (*oauth2.Token, error) {
@@ -57,7 +63,13 @@ func getToken() (*oauth2.Token, error) {
 		return token, err
 	}
 
-	return tokenFromFile("configs/google/token.json")
+	wd, err := os.Getwd()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return tokenFromFile(wd + `\configs\google\token.json`)
 }
 
 func NewDriveService() (*DriveService, error) {
@@ -113,8 +125,14 @@ func getClient(
 			return nil, err
 		}
 
+		wd, err := os.Getwd()
+
+		if err != nil {
+			return nil, err
+		}
+
 		saveToken(
-			"configs/google/token.json",
+			wd + `\configs\google\token.json`,
 			token,
 		)
 	}
@@ -134,9 +152,7 @@ func getTokenFromWeb(
 		oauth2.AccessTypeOffline,
 	)
 
-	fmt.Println(
-		"Open this URL in your browser:",
-	)
+	fmt.Println("Open this URL in your browser:")
 
 	fmt.Println(authURL)
 

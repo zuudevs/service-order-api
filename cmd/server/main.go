@@ -89,8 +89,6 @@ func backup(
 }
 
 func main() {
-	wd, err := os.Getwd()
-	log.Printf("Working Directory: %v", wd)
 	// =============================== SQLite ===============================
 
 	db, err := database.ConnectSQLite()
