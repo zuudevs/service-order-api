@@ -15,6 +15,7 @@ package middlewares
 
 import (
 	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/hex"
 	"net/http"
 	"os"
@@ -30,46 +31,36 @@ func InternalAuthMiddleware(
 		r *http.Request,
 	) {
 
-		auth := r.Header.Get(
-			"Authorization",
-		)
+		auth := r.Header.Get("Authorization")
 
 		if auth == "" {
-
-			http.Error(
-				w,
-				"Unauthorized",
-				http.StatusUnauthorized,
-			)
-
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
-		token := strings.TrimPrefix(
-			auth,
-			"Bearer ",
-		)
+		if !strings.HasPrefix(auth, "Bearer ") {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
 
-		hash := sha256.Sum256(
-			[]byte(token),
-		)
+		token := strings.TrimPrefix(auth, "Bearer ")
 
-		tokenHash := hex.EncodeToString(
-			hash[:],
-		)
+		if token == "" {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
 
-		expectedHash := os.Getenv(
-			"INTERNAL_API_TOKEN_HASH",
-		)
+		hash := sha256.Sum256([]byte(token))
+		tokenHash := hex.EncodeToString(hash[:])
+		expectedHash := os.Getenv("INTERNAL_API_TOKEN_HASH")
 
-		if tokenHash != expectedHash {
+		if expectedHash == "" {
+			http.Error(w, "Server misconfigured", http.StatusInternalServerError)
+			return
+		}
 
-			http.Error(
-				w,
-				"Unauthorized",
-				http.StatusUnauthorized,
-			)
-
+		if subtle.ConstantTimeCompare([]byte(tokenHash), []byte(expectedHash)) != 1 {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
