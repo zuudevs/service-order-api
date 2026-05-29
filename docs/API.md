@@ -19,11 +19,11 @@ The Service Order API provides RESTful endpoints for managing:
 http://localhost:8080
 ```
 
-For production, replace `localhost:8080` with your server address.
+For production, replace localhost:8080 with your server address.
 
 ## Authentication
 
-All endpoints (except `/health`) require authentication via bearer token.
+All endpoints (except /health) require authentication via bearer token.
 
 ### Header Format
 
@@ -39,7 +39,7 @@ Include this header in all API requests.
 
 ### Endpoint
 
-**GET** `/health`
+GET /health
 
 ### Description
 
@@ -76,7 +76,7 @@ Manage person records (customers, service providers, etc.).
 
 ### Create Person
 
-**POST** `/persons`
+POST /persons
 
 Creates a new person record.
 
@@ -92,11 +92,11 @@ Creates a new person record.
 
 #### Parameters
 
-| Name       | Type   | Required | Description          |
-| ---------- | ------ | -------- | -------------------- |
-| firstname  | string | Yes      | Person's first name  |
-| middlename | string | No       | Person's middle name |
-| lastname   | string | No       | Person's last name   |
+| Name       | Type   | Required | Description        |
+| ---------- | ------ | -------- | ------------------ |
+| firstname  | string | Yes      | Person first name  |
+| middlename | string | No       | Person middle name |
+| lastname   | string | No       | Person last name   |
 
 #### Example
 
@@ -125,16 +125,16 @@ curl -X POST http://localhost:8080/persons \
 
 #### Status Codes
 
-- `201 Created` - Person successfully created
-- `400 Bad Request` - Invalid request body
-- `401 Unauthorized` - Missing or invalid authentication
-- `500 Internal Server Error` - Server error
+- 201 Created - Person successfully created
+- 400 Bad Request - Invalid request body
+- 401 Unauthorized - Missing or invalid authentication
+- 500 Internal Server Error - Server error
 
 ---
 
 ### List Persons
 
-**GET** `/persons`
+GET /persons
 
 Retrieve all persons.
 
@@ -172,15 +172,15 @@ curl http://localhost:8080/persons \
 
 #### Status Codes
 
-- `200 OK` - Successfully retrieved
-- `401 Unauthorized` - Missing or invalid authentication
-- `500 Internal Server Error` - Server error
+- 200 OK - Successfully retrieved
+- 401 Unauthorized - Missing or invalid authentication
+- 500 Internal Server Error - Server error
 
 ---
 
 ### Get Person by ID
 
-**GET** `/persons/{id}`
+GET /persons/{id}
 
 Retrieve a specific person by ID.
 
@@ -188,7 +188,7 @@ Retrieve a specific person by ID.
 
 | Name | Type    | Description |
 | ---- | ------- | ----------- |
-| id   | integer | Person's ID |
+| id   | integer | Person ID   |
 
 #### Example
 
@@ -211,16 +211,16 @@ curl http://localhost:8080/persons/1 \
 
 #### Status Codes
 
-- `200 OK` - Successfully retrieved
-- `401 Unauthorized` - Missing or invalid authentication
-- `404 Not Found` - Person not found
-- `500 Internal Server Error` - Server error
+- 200 OK - Successfully retrieved
+- 401 Unauthorized - Missing or invalid authentication
+- 404 Not Found - Person not found
+- 500 Internal Server Error - Server error
 
 ---
 
 ### Replace Person (PUT)
 
-**PUT** `/persons/{id}`
+PUT /persons/{id}
 
 Replace an entire person record.
 
@@ -228,7 +228,7 @@ Replace an entire person record.
 
 | Name | Type    | Description |
 | ---- | ------- | ----------- |
-| id   | integer | Person's ID |
+| id   | integer | Person ID   |
 
 #### Request Body
 
@@ -267,17 +267,17 @@ curl -X PUT http://localhost:8080/persons/1 \
 
 #### Status Codes
 
-- `200 OK` - Successfully updated
-- `400 Bad Request` - Invalid request body
-- `401 Unauthorized` - Missing or invalid authentication
-- `404 Not Found` - Person not found
-- `500 Internal Server Error` - Server error
+- 200 OK - Successfully updated
+- 400 Bad Request - Invalid request body
+- 401 Unauthorized - Missing or invalid authentication
+- 404 Not Found - Person not found
+- 500 Internal Server Error - Server error
 
 ---
 
 ### Update Person (PATCH)
 
-**PATCH** `/persons/{id}`
+PATCH /persons/{id}
 
 Update specific fields of a person record (partial update).
 
@@ -285,7 +285,7 @@ Update specific fields of a person record (partial update).
 
 | Name | Type    | Description |
 | ---- | ------- | ----------- |
-| id   | integer | Person's ID |
+| id   | integer | Person ID   |
 
 #### Request Body
 
@@ -322,17 +322,17 @@ curl -X PATCH http://localhost:8080/persons/1 \
 
 #### Status Codes
 
-- `200 OK` - Successfully updated
-- `400 Bad Request` - Invalid request body
-- `401 Unauthorized` - Missing or invalid authentication
-- `404 Not Found` - Person not found
-- `500 Internal Server Error` - Server error
+- 200 OK - Successfully updated
+- 400 Bad Request - Invalid request body
+- 401 Unauthorized - Missing or invalid authentication
+- 404 Not Found - Person not found
+- 500 Internal Server Error - Server error
 
 ---
 
 ### Delete Person
 
-**DELETE** `/persons/{id}`
+DELETE /persons/{id}
 
 Delete a person record.
 
@@ -340,7 +340,7 @@ Delete a person record.
 
 | Name | Type    | Description |
 | ---- | ------- | ----------- |
-| id   | integer | Person's ID |
+| id   | integer | Person ID   |
 
 #### Example
 
@@ -355,10 +355,10 @@ No content returned. Check status code.
 
 #### Status Codes
 
-- `204 No Content` - Successfully deleted
-- `401 Unauthorized` - Missing or invalid authentication
-- `404 Not Found` - Person not found
-- `500 Internal Server Error` - Server error
+- 204 No Content - Successfully deleted
+- 401 Unauthorized - Missing or invalid authentication
+- 404 Not Found - Person not found
+- 500 Internal Server Error - Server error
 
 ---
 
@@ -368,7 +368,7 @@ Manage contact information for persons.
 
 ### Create Contact
 
-**POST** `/contacts`
+POST /contacts
 
 #### Request Body
 
@@ -408,7 +408,7 @@ curl -X POST http://localhost:8080/contacts \
 
 ### List Contacts
 
-**GET** `/contacts`
+GET /contacts
 
 ```bash
 curl http://localhost:8080/contacts \
@@ -419,7 +419,7 @@ curl http://localhost:8080/contacts \
 
 ### Get Contact by ID
 
-**GET** `/contacts/{id}`
+GET /contacts/{id}
 
 ```bash
 curl http://localhost:8080/contacts/1 \
@@ -430,7 +430,7 @@ curl http://localhost:8080/contacts/1 \
 
 ### Update Contact
 
-**PATCH** `/contacts/{id}`
+PATCH /contacts/{id}
 
 ```bash
 curl -X PATCH http://localhost:8080/contacts/1 \
@@ -443,7 +443,7 @@ curl -X PATCH http://localhost:8080/contacts/1 \
 
 ### Delete Contact
 
-**DELETE** `/contacts/{id}`
+DELETE /contacts/{id}
 
 ```bash
 curl -X DELETE http://localhost:8080/contacts/1 \
@@ -458,7 +458,7 @@ Manage service orders.
 
 ### Create Order
 
-**POST** `/orders`
+POST /orders
 
 #### Request Body
 
@@ -473,11 +473,11 @@ Manage service orders.
 
 #### Order Status Codes
 
-- `0` - Pending
-- `1` - Accepted
-- `2` - Rejected
-- `3` - Revised
-- `4` - Completed
+- 0 - Pending
+- 1 - Accepted
+- 2 - Rejected
+- 3 - Revised
+- 4 - Completed
 
 #### Example
 
@@ -510,7 +510,7 @@ curl -X POST http://localhost:8080/orders \
 
 ### List Orders
 
-**GET** `/orders`
+GET /orders
 
 ```bash
 curl http://localhost:8080/orders \
@@ -521,7 +521,7 @@ curl http://localhost:8080/orders \
 
 ### Get Order by ID
 
-**GET** `/orders/{id}`
+GET /orders/{id}
 
 ```bash
 curl http://localhost:8080/orders/1 \
@@ -532,7 +532,7 @@ curl http://localhost:8080/orders/1 \
 
 ### Update Order
 
-**PATCH** `/orders/{id}`
+PATCH /orders/{id}
 
 ```bash
 curl -X PATCH http://localhost:8080/orders/1 \
@@ -548,7 +548,7 @@ curl -X PATCH http://localhost:8080/orders/1 \
 
 ### Delete Order
 
-**DELETE** `/orders/{id}`
+DELETE /orders/{id}
 
 ```bash
 curl -X DELETE http://localhost:8080/orders/1 \
@@ -563,7 +563,7 @@ Manage work tasks related to orders.
 
 ### Create Task
 
-**POST** `/tasks`
+POST /tasks
 
 #### Request Body
 
@@ -591,7 +591,7 @@ curl -X POST http://localhost:8080/tasks \
 
 ### List Tasks
 
-**GET** `/tasks`
+GET /tasks
 
 ```bash
 curl http://localhost:8080/tasks \
@@ -602,7 +602,7 @@ curl http://localhost:8080/tasks \
 
 ### Get Task by ID
 
-**GET** `/tasks/{id}`
+GET /tasks/{id}
 
 ```bash
 curl http://localhost:8080/tasks/1 \
@@ -613,7 +613,7 @@ curl http://localhost:8080/tasks/1 \
 
 ### Update Task
 
-**PATCH** `/tasks/{id}`
+PATCH /tasks/{id}
 
 ```bash
 curl -X PATCH http://localhost:8080/tasks/1 \
@@ -626,7 +626,7 @@ curl -X PATCH http://localhost:8080/tasks/1 \
 
 ### Delete Task
 
-**DELETE** `/tasks/{id}`
+DELETE /tasks/{id}
 
 ```bash
 curl -X DELETE http://localhost:8080/tasks/1 \
@@ -641,7 +641,7 @@ Manage financial transactions for orders.
 
 ### Create Transaction
 
-**POST** `/transactions`
+POST /transactions
 
 #### Request Body
 
@@ -671,7 +671,7 @@ curl -X POST http://localhost:8080/transactions \
 
 ### List Transactions
 
-**GET** `/transactions`
+GET /transactions
 
 ```bash
 curl http://localhost:8080/transactions \
@@ -682,7 +682,7 @@ curl http://localhost:8080/transactions \
 
 ### Get Transaction by ID
 
-**GET** `/transactions/{id}`
+GET /transactions/{id}
 
 ```bash
 curl http://localhost:8080/transactions/1 \
@@ -693,7 +693,7 @@ curl http://localhost:8080/transactions/1 \
 
 ### Update Transaction
 
-**PATCH** `/transactions/{id}`
+PATCH /transactions/{id}
 
 ```bash
 curl -X PATCH http://localhost:8080/transactions/1 \
@@ -706,7 +706,7 @@ curl -X PATCH http://localhost:8080/transactions/1 \
 
 ### Delete Transaction
 
-**DELETE** `/transactions/{id}`
+DELETE /transactions/{id}
 
 ```bash
 curl -X DELETE http://localhost:8080/transactions/1 \
@@ -721,7 +721,7 @@ Manage detailed information for tasks.
 
 ### Create Detail Task
 
-**POST** `/detail-tasks`
+POST /detail-tasks
 
 #### Request Body
 
@@ -750,7 +750,7 @@ curl -X POST http://localhost:8080/detail-tasks \
 
 ### List Detail Tasks
 
-**GET** `/detail-tasks`
+GET /detail-tasks
 
 ```bash
 curl http://localhost:8080/detail-tasks \
@@ -761,7 +761,7 @@ curl http://localhost:8080/detail-tasks \
 
 ### Get Detail Task by ID
 
-**GET** `/detail-tasks/{id}`
+GET /detail-tasks/{id}
 
 ```bash
 curl http://localhost:8080/detail-tasks/1 \
@@ -772,7 +772,7 @@ curl http://localhost:8080/detail-tasks/1 \
 
 ### Update Detail Task
 
-**PATCH** `/detail-tasks/{id}`
+PATCH /detail-tasks/{id}
 
 ```bash
 curl -X PATCH http://localhost:8080/detail-tasks/1 \
@@ -785,7 +785,7 @@ curl -X PATCH http://localhost:8080/detail-tasks/1 \
 
 ### Delete Detail Task
 
-**DELETE** `/detail-tasks/{id}`
+DELETE /detail-tasks/{id}
 
 ```bash
 curl -X DELETE http://localhost:8080/detail-tasks/1 \
@@ -818,6 +818,47 @@ curl -X DELETE http://localhost:8080/detail-tasks/1 \
 
 ---
 
+## API Response Flow
+
+```mermaid
+graph TD
+    A["Client Request"]
+    B["HTTP Method Check"]
+    C["Route Matching"]
+    D["Middleware<br/>(Authentication)"]
+    E["Handler Validation"]
+    F["Service Processing"]
+    G["Repository Access"]
+    H["Database Query"]
+    I["Response Format"]
+    J["Client Response"]
+
+    K["Error Handler"]
+
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+    G --> H
+    H --> I
+    I --> J
+
+    B -.->|Error| K
+    C -.->|Error| K
+    D -.->|Error| K
+    E -.->|Error| K
+    F -.->|Error| K
+    G -.->|Error| K
+    H -.->|Error| K
+    K --> J
+
+    style A fill:#e8f5e9
+    style J fill:#f3e5f5
+    style K fill:#ffebee
+```
+
 ## Rate Limiting
 
 Currently no rate limiting is implemented. Contact support for SLA requirements.
@@ -830,19 +871,19 @@ Currently pagination is not supported. All list endpoints return all records.
 
 Future versions may add:
 
-- `?page=1&limit=10` parameters
-- `X-Total-Count` headers
+- ?page=1&limit=10 parameters
+- X-Total-Count headers
 - Cursor-based pagination
 
 ---
 
 ## Versioning
 
-The current API version is **v1** (implicit in the base URL).
+The current API version is v1 (implicit in the base URL).
 
 Future versions may be available at:
 
-- `http://localhost:8080/api/v2/...`
+- http://localhost:8080/api/v2/...
 
 ---
 
@@ -850,7 +891,7 @@ Future versions may be available at:
 
 ### Authentication
 
-- Always include the `Authorization` header
+- Always include the Authorization header
 - Store tokens securely (environment variables, secret management)
 - Rotate tokens regularly
 
@@ -883,19 +924,13 @@ Future versions may be available at:
 
 ## Testing with Postman
 
-1. Download [Postman](https://www.postman.com/downloads/)
+1. Download Postman: https://www.postman.com/downloads/
 2. Create a new collection
 3. Add requests for each endpoint
 4. Set environment variables:
-   - `base_url`: `http://localhost:8080`
-   - `auth_token`: Your API token
-5. Use `{{base_url}}` and `{{auth_token}}` in requests
-
----
-
-## Webhooks & Events
-
-Not currently supported. Planned for future releases.
+   - base_url: http://localhost:8080
+   - auth_token: Your API token
+5. Use {{base_url}} and {{auth_token}} in requests
 
 ---
 
@@ -905,9 +940,9 @@ For API questions:
 
 - Email: zuudevs@gmail.com
 - GitHub: https://github.com/zuudevs/service-order-api
-- Documentation: [docs/](../docs/)
+- Documentation: docs/
 
 ---
 
-**Last Updated**: 2026-05-29
-**Version**: 1.0.0
+Last Updated: 2026-05-29
+Version: 1.0.0

@@ -129,10 +129,10 @@ Responsibilities:
 Example Flow:
 ```
 ContactService.Create(contact)
-├── Validate contact data
-├── Check person exists (via PersonRepository)
-├── Call ContactRepository.Create()
-└── Return created contact
+  |-- Validate contact data
+  |-- Check person exists (via PersonRepository)
+  |-- Call ContactRepository.Create()
+  `-- Return created contact
 ```
 
 ### 5. Repository Layer (internal/repositories/)

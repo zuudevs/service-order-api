@@ -1,0 +1,126 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.25.8"
+          cache: true
+
+      - name: Format check
+        run: |
+          if [ -z "$(gofmt -s -l .)" ]; then
+            echo "All files are properly formatted"
+          else
+            echo "Files that need formatting:"
+            gofmt -s -l .
+            exit 1
+          fi
+
+      - name: Run linters
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          args: --timeout=5m --verbose
+
+      - name: Run tests with coverage
+        run: go test -v -race -coverprofile=coverage.out ./...
+
+      - name: Generate coverage report
+        run: |
+          go tool cover -html=coverage.out -o coverage.html
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.out
+          flags: unittests
+          fail_ci_if_error: false
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: coverage.html
+          retention-days: 30
+
+  docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.25.8"
+
+      - name: Generate documentation
+        run: |
+          go doc -all ./cmd/server > cmd_server.txt 2>&1 || true
+          go doc -all ./internal/handlers > internal_handlers.txt 2>&1 || true
+
+      - name: Check documentation
+        run: |
+          echo "Documentation files generated"
+          echo "Checking docs/ directory:"
+          ls -lh docs/
+          echo ""
+          echo "Verifying ASCII compliance:"
+          for file in docs/*.md; do
+            if file "$file" | grep -q "ASCII text"; then
+              echo "[OK] $(basename $file)"
+            fi
+          done
+
+  binary-size:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.25.8"
+
+      - name: Build optimized binary
+        run: |
+          CGO_ENABLED=0 go build \
+            -trimpath \
+            -ldflags="-s -w" \
+            -o service-order-api \
+            ./cmd/server
+
+      - name: Check binary size
+        run: |
+          SIZE=$(ls -lh service-order-api | awk '{print $5}')
+          echo "Binary size: $SIZE"
+
+          # Warn if binary is larger than 50MB
+          BYTES=$(stat -c%s service-order-api 2>/dev/null || stat -f%z service-order-api)
+          if [ $BYTES -gt 52428800 ]; then
+            echo "WARNING: Binary is larger than 50MB"
+          fi
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: service-order-api-optimized
+          path: service-order-api
+          retention-days: 7

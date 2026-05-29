@@ -6,14 +6,14 @@ This document provides comprehensive instructions for building the Service Order
 
 ### Required
 
-- **Go 1.25.8 or later** - [Download](https://golang.org/dl/)
-- **Git** - For version control
-- **SQLite3** - Usually included with Go dependencies
+- Go 1.25.8 or later - [Download](https://golang.org/dl/)
+- Git - For version control
+- SQLite3 - Usually included with Go dependencies
 
 ### Optional
 
-- **Make** - For build automation
-- **Docker** - For containerized builds
+- Make - For build automation
+- Docker - For containerized builds
 
 ## Building from Source
 
@@ -30,7 +30,7 @@ go mod download
 go build -o service-order-api ./cmd/server
 ```
 
-The compiled binary will be created as `service-order-api` (or `service-order-api.exe` on Windows).
+The compiled binary will be created as service-order-api (or service-order-api.exe on Windows).
 
 ### Build with Custom Output
 
@@ -102,12 +102,12 @@ CGO_ENABLED=0 \
   -o service-order-api ./cmd/server
 ```
 
-**Flags explained:**
+Flags explained:
 
-- `CGO_ENABLED=0` - Disable C bindings for portable binary
-- `-trimpath` - Remove file system paths from binary
-- `-s` - Strip symbol table
-- `-w` - Strip debugging information
+- CGO_ENABLED=0 - Disable C bindings for portable binary
+- -trimpath - Remove file system paths from binary
+- -s - Strip symbol table
+- -w - Strip debugging information
 
 ## Dependency Management
 
@@ -168,7 +168,7 @@ gofmt -s -w .
 
 ### Lint Code
 
-If `golangci-lint` is installed:
+If golangci-lint is installed:
 
 ```bash
 golangci-lint run ./...
@@ -231,7 +231,7 @@ curl http://localhost:8080/health
 
 ### Build Docker Image
 
-Create a `Dockerfile`:
+Create a Dockerfile:
 
 ```dockerfile
 FROM golang:1.25.8-alpine AS builder
@@ -264,7 +264,7 @@ docker run -p 8080:8080 -e PORT=8080 service-order-api:latest
 
 ### GitHub Actions Example
 
-Create `.github/workflows/build.yml`:
+Create .github/workflows/build.yml:
 
 ```yaml
 name: Build
@@ -333,22 +333,49 @@ chmod +x service-order-api
 
 ## Performance Tips
 
-1. **Use `-ldflags="-s -w"`** for smaller binary size
-2. **Enable `-trimpath`** to remove file paths
-3. **Use `GOOS` and `GOARCH`** for target-specific optimization
-4. **Test with `-race`** flag to detect race conditions
+1. Use -ldflags="-s -w" for smaller binary size
+2. Enable -trimpath to remove file paths
+3. Use GOOS and GOARCH for target-specific optimization
+4. Test with -race flag to detect race conditions
+
+## Build Process Flow
+
+```mermaid
+graph TD
+    A["Source Code"]
+    B["go mod download"]
+    C["go fmt ./..."]
+    D["go vet ./..."]
+    E["go build"]
+    F["Binary Executable"]
+    G["go test ./..."]
+    H["Verified Build"]
+
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+    G --> H
+
+    style A fill:#e8eaf6
+    style F fill:#fff9c4
+    style H fill:#c8e6c9
+```
 
 ## Build Checklist
 
-- [ ] Dependencies downloaded (`go mod download`)
-- [ ] Code formatted (`go fmt ./...`)
-- [ ] Code linted (`go vet ./...`)
-- [ ] Tests pass (`go test ./...`)
-- [ ] Binary builds successfully (`go build`)
+- [ ] Dependencies downloaded (go mod download)
+- [ ] Code formatted (go fmt ./...)
+- [ ] Code linted (go vet ./...)
+- [ ] Tests pass (go test ./...)
+- [ ] Binary builds successfully (go build)
 - [ ] Binary runs without errors
-- [ ] Health endpoint responds (`/health`)
+- [ ] Health endpoint responds (/health)
 - [ ] All required environment variables set
 
 ---
 
-For more information, see [Go Build Documentation](https://golang.org/cmd/go/#hdr-Compile_packages_and_dependencies).
+For more information, see Go Build Documentation:
+https://golang.org/cmd/go/#hdr-Compile_packages_and_dependencies

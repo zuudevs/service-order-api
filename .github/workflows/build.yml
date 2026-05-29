@@ -1,0 +1,127 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        go-version: ["1.25.8"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go-version }}
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Verify dependencies
+        run: go mod verify
+
+      - name: Format check
+        run: |
+          if [ -z "$(gofmt -s -l .)" ]; then
+            echo "All files are properly formatted"
+          else
+            echo "Some files need formatting:"
+            gofmt -s -l .
+            exit 1
+          fi
+
+      - name: Lint code
+        run: |
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+          golangci-lint run ./...
+
+      - name: Vet code
+        run: go vet ./...
+
+      - name: Run tests
+        run: go test -v -race -coverprofile=coverage.out ./...
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.out
+          fail_ci_if_error: false
+
+      - name: Build binary
+        run: |
+          CGO_ENABLED=0 go build \
+            -trimpath \
+            -ldflags="-s -w -X main.Version=${{ github.sha }} -X main.BuildTime=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
+            -o service-order-api \
+            ./cmd/server
+
+      - name: Verify binary
+        run: |
+          ./service-order-api --help 2>&1 || true
+          file service-order-api
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: service-order-api-linux-amd64
+          path: service-order-api
+          retention-days: 7
+
+  build-matrix:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            goos: linux
+            goarch: amd64
+            output: service-order-api-linux-amd64
+          - os: macos-latest
+            goos: darwin
+            goarch: amd64
+            output: service-order-api-macos-amd64
+          - os: macos-latest
+            goos: darwin
+            goarch: arm64
+            output: service-order-api-macos-arm64
+          - os: windows-latest
+            goos: windows
+            goarch: amd64
+            output: service-order-api-windows-amd64.exe
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.25.8"
+          cache: true
+
+      - name: Build for ${{ matrix.goos }}-${{ matrix.goarch }}
+        run: |
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} CGO_ENABLED=0 go build \
+            -trimpath \
+            -ldflags="-s -w -X main.Version=${{ github.sha }}" \
+            -o ${{ matrix.output }} \
+            ./cmd/server
+        shell: bash
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.output }}
+          path: ${{ matrix.output }}
+          retention-days: 7
