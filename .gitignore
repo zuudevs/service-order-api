@@ -1,3 +1,2 @@
 configs/google/
 .env
-*.db

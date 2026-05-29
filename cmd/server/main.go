@@ -34,9 +34,7 @@ func backup(
 ) {
 	filePath := "./storage/database.db"
 
-	fileId := os.Getenv(
-		"GOOGLE_DRIVE_DB_FILE_ID",
-	)
+	fileId := os.Getenv("GOOGLE_DRIVE_DB_FILE_ID")
 
 	// ================= Upload First Time =================
 
@@ -91,6 +89,8 @@ func backup(
 }
 
 func main() {
+	wd, err := os.Getwd()
+	log.Printf("Working Directory: %v", wd)
 	// =============================== SQLite ===============================
 
 	db, err := database.ConnectSQLite()

@@ -44,10 +44,12 @@ func ConnectSQLite() (*sql.DB, error) {
 		return nil, err
 	}
 
-	db, err = initDatabase(db)
 	if err != nil {
-		_ = db.Close()
-		return nil, err
+		db, err = initDatabase(db)
+		if err != nil {
+			_ = db.Close()
+			return nil, err
+		} 
 	}
 
 	return db, nil
