@@ -17,6 +17,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -139,7 +140,17 @@ func main() {
 
 	// =============================== Google Drive Backup (Periodic Incremental Upload) ===============================
 
-	backupSvc := services.NewBackupServiceWithDB(100, nil, db)
+	intervalChangesBackupStr := os.Getenv("BACKUP_INTERVAL_CHANGES")
+	intervalChangesBackup := uint64(100)
+	val, err := strconv.ParseUint(intervalChangesBackupStr, 10, 64)
+
+	if intervalChangesBackupStr != "" || err != nil {
+		intervalChangesBackup = 100
+	} else {
+		intervalChangesBackup = val
+	}
+
+	backupSvc := services.NewBackupServiceWithDB(intervalChangesBackup, nil, db)
 
 	if driveSvc != nil {
 		backupSvc.SetCallback(func() {
