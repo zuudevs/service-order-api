@@ -44,6 +44,16 @@ func (s *PersonService) Create(
 		return errors.New("firstname required")
 	}
 
+	firstname = strings.ToLower(firstname)
+
+	if *middlename != "" && middlename != nil {
+		*middlename = strings.ToLower(*middlename)
+	}
+
+	if *lastname != "" && lastname != nil {
+		*lastname = strings.ToLower(*lastname)
+	}
+
 	person := models.NewPerson(
 		firstname,
 		middlename,

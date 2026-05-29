@@ -29,6 +29,38 @@ import (
 	gdrive "github.com/zuudevs/service-order-api/internal/services/gdrive"
 )
 
+func syncDatabase(
+	driveService *gdrive.DriveService,
+) {
+	filePath := "./storage/database.db"
+	fileId := os.Getenv("GOOGLE_DRIVE_DB_FILE_ID")
+
+	// Check if file exists locally
+	_, err := os.Stat(filePath)
+	fileExists := err == nil
+
+	// If file ID is set, try to download from GDrive
+	if fileId != "" {
+		log.Println("Downloading database from Google Drive...")
+		err := driveService.DownloadFile(fileId, filePath)
+		if err != nil {
+			log.Printf("Failed to download database: %v. Using existing or creating new database.", err)
+		} else {
+			log.Println("Database downloaded successfully from Google Drive")
+			return
+		}
+	}
+
+	// If no file exists locally and no file ID, create new and upload
+	if !fileExists && fileId == "" {
+		log.Println("No database file found. Creating new database...")
+		// Database will be created by ConnectSQLite
+		return
+	}
+
+	// If local file exists but no file ID in env, we'll upload on backup
+}
+
 func backup(
 	driveService *gdrive.DriveService,
 ) {
@@ -89,6 +121,20 @@ func backup(
 }
 
 func main() {
+	// =============================== Google Drive Sync (Download DB if exists) ===============================
+
+	driveSvc, err := gdrive.NewDriveService()
+
+	if err != nil {
+		log.Printf(
+			"drive init failed: %v (continuing with local database)",
+			err,
+		)
+
+	} else {
+		syncDatabase(driveSvc)
+	}
+
 	// =============================== SQLite ===============================
 
 	db, err := database.ConnectSQLite()
@@ -99,17 +145,9 @@ func main() {
 
 	defer db.Close()
 
-	// =============================== Google Drive ===============================
+	// =============================== Google Drive Backup (Periodic Upload) ===============================
 
-	driveSvc, err := gdrive.NewDriveService()
-
-	if err != nil {
-		log.Printf(
-			"drive init failed: %v",
-			err,
-		)
-
-	} else {
+	if driveSvc != nil {
 		go func() {
 			backup(driveSvc)
 			ticker := time.NewTicker(6 * time.Hour)

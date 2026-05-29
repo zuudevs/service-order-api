@@ -128,6 +128,10 @@ func (h *PersonHandler) Index(
 		return
 	}
 
+	if persons == nil {
+		persons = []models.Person{}
+	}
+
 	w.Header().Set(
 		"Content-Type",
 		"application/json",

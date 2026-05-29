@@ -15,6 +15,7 @@ package repositories
 
 import (
 	"database/sql"
+	"strings"
 	"time"
 
 	"github.com/zuudevs/service-order-api/internal/models"
@@ -53,6 +54,14 @@ func (r *personRepository) findPersons(
 			return nil, err
 		}
 
+		person.FirstName = strings.ToLower(person.FirstName)
+		if person.MiddleName != nil {
+			*person.MiddleName = strings.ToLower(*person.MiddleName)
+		}
+		if person.LastName != nil {
+			*person.LastName = strings.ToLower(*person.LastName)
+		}
+
 		persons = append(persons, person)
 	}
 
@@ -75,6 +84,14 @@ func (r *personRepository) findPerson(
 
 	if err != nil {
 		return nil, err
+	}
+
+	person.FirstName = strings.ToLower(person.FirstName)
+	if person.MiddleName != nil {
+		*person.MiddleName = strings.ToLower(*person.MiddleName)
+	}
+	if person.LastName != nil {
+		*person.LastName = strings.ToLower(*person.LastName)
 	}
 
 	return &person, nil
